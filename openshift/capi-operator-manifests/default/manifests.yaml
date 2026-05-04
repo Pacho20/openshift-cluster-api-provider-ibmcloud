@@ -8218,6 +8218,8 @@ spec:
         - --insecure-diagnostics=${CAPIBM_INSECURE_DIAGNOSTICS:=false}
         - --service-endpoint=${SERVICE_ENDPOINT:=none}
         - --v=${LOGLEVEL:=0}
+        - --tls-min-version=${TLS_MIN_VERSION}
+        - --tls-cipher-suites=${TLS_CIPHER_SUITES}
         command:
         - /manager
         env:
