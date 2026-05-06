@@ -8289,6 +8289,9 @@ webhooks:
       path: /mutate-infrastructure-cluster-x-k8s-io-v1beta2-ibmpowervscluster
   failurePolicy: Fail
   name: mibmpowervscluster.kb.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-cluster-api
   rules:
   - apiGroups:
     - infrastructure.cluster.x-k8s.io
@@ -8310,6 +8313,9 @@ webhooks:
       path: /mutate-infrastructure-cluster-x-k8s-io-v1beta2-ibmpowervsclustertemplate
   failurePolicy: Fail
   name: mibmpowervsclustertemplate.kb.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-cluster-api
   rules:
   - apiGroups:
     - infrastructure.cluster.x-k8s.io
@@ -8331,6 +8337,9 @@ webhooks:
       path: /mutate-infrastructure-cluster-x-k8s-io-v1beta2-ibmpowervsimage
   failurePolicy: Fail
   name: mibmpowervsimage.kb.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-cluster-api
   rules:
   - apiGroups:
     - infrastructure.cluster.x-k8s.io
@@ -8352,6 +8361,9 @@ webhooks:
       path: /mutate-infrastructure-cluster-x-k8s-io-v1beta2-ibmpowervsmachine
   failurePolicy: Fail
   name: mibmpowervsmachine.kb.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-cluster-api
   rules:
   - apiGroups:
     - infrastructure.cluster.x-k8s.io
@@ -8373,6 +8385,9 @@ webhooks:
       path: /mutate-infrastructure-cluster-x-k8s-io-v1beta2-ibmpowervsmachinetemplate
   failurePolicy: Fail
   name: mibmpowervsmachinetemplate.kb.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-cluster-api
   rules:
   - apiGroups:
     - infrastructure.cluster.x-k8s.io
@@ -8394,6 +8409,9 @@ webhooks:
       path: /mutate-infrastructure-cluster-x-k8s-io-v1beta2-ibmvpccluster
   failurePolicy: Fail
   name: mibmvpccluster.kb.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-cluster-api
   rules:
   - apiGroups:
     - infrastructure.cluster.x-k8s.io
@@ -8415,6 +8433,9 @@ webhooks:
       path: /mutate-infrastructure-cluster-x-k8s-io-v1beta2-ibmvpcmachine
   failurePolicy: Fail
   name: mibmvpcmachine.kb.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-cluster-api
   rules:
   - apiGroups:
     - infrastructure.cluster.x-k8s.io
@@ -8436,6 +8457,9 @@ webhooks:
       path: /mutate-infrastructure-cluster-x-k8s-io-v1beta2-ibmvpcmachinetemplate
   failurePolicy: Fail
   name: mibmvpcmachinetemplate.kb.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-cluster-api
   rules:
   - apiGroups:
     - infrastructure.cluster.x-k8s.io
@@ -8467,6 +8491,9 @@ webhooks:
       path: /validate-infrastructure-cluster-x-k8s-io-v1beta2-ibmpowervscluster
   failurePolicy: Fail
   name: vibmpowervscluster.kb.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-cluster-api
   rules:
   - apiGroups:
     - infrastructure.cluster.x-k8s.io
@@ -8488,6 +8515,9 @@ webhooks:
       path: /validate-infrastructure-cluster-x-k8s-io-v1beta2-ibmpowervsclustertemplate
   failurePolicy: Fail
   name: vibmpowervsclustertemplate.kb.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-cluster-api
   rules:
   - apiGroups:
     - infrastructure.cluster.x-k8s.io
@@ -8509,6 +8539,9 @@ webhooks:
       path: /validate-infrastructure-cluster-x-k8s-io-v1beta2-ibmpowervsimage
   failurePolicy: Fail
   name: vibmpowervsimage.kb.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-cluster-api
   rules:
   - apiGroups:
     - infrastructure.cluster.x-k8s.io
@@ -8530,6 +8563,9 @@ webhooks:
       path: /validate-infrastructure-cluster-x-k8s-io-v1beta2-ibmpowervsmachine
   failurePolicy: Fail
   name: vibmpowervsmachine.kb.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-cluster-api
   rules:
   - apiGroups:
     - infrastructure.cluster.x-k8s.io
@@ -8551,6 +8587,9 @@ webhooks:
       path: /validate-infrastructure-cluster-x-k8s-io-v1beta2-ibmpowervsmachinetemplate
   failurePolicy: Fail
   name: vibmpowervsmachinetemplate.kb.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-cluster-api
   rules:
   - apiGroups:
     - infrastructure.cluster.x-k8s.io
@@ -8572,6 +8611,9 @@ webhooks:
       path: /validate-infrastructure-cluster-x-k8s-io-v1beta2-ibmvpccluster
   failurePolicy: Fail
   name: vibmvpccluster.kb.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-cluster-api
   rules:
   - apiGroups:
     - infrastructure.cluster.x-k8s.io
@@ -8593,6 +8635,9 @@ webhooks:
       path: /validate-infrastructure-cluster-x-k8s-io-v1beta2-ibmvpcmachine
   failurePolicy: Fail
   name: vibmvpcmachine.kb.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-cluster-api
   rules:
   - apiGroups:
     - infrastructure.cluster.x-k8s.io
@@ -8614,6 +8659,9 @@ webhooks:
       path: /validate-infrastructure-cluster-x-k8s-io-v1beta2-ibmvpcmachinetemplate
   failurePolicy: Fail
   name: vibmvpcmachinetemplate.kb.io
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: openshift-cluster-api
   rules:
   - apiGroups:
     - infrastructure.cluster.x-k8s.io
