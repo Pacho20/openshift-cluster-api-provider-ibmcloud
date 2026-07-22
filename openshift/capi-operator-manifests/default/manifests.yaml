@@ -8226,7 +8226,7 @@ spec:
         - name: IBM_CREDENTIALS_FILE
           value: /home/.ibmcloud/ibm-credentials.env
         image: registry.ci.openshift.org/openshift:ibmcloud-cluster-api-controllers
-        imagePullPolicy: Always
+        imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
             path: /healthz
