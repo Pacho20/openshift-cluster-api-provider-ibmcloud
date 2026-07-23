@@ -21,7 +21,7 @@ import (
 	"golang.org/x/tools/go/analysis/passes/inspect"
 )
 
-func CheckRangeStringRunes(pass *analysis.Pass) (interface{}, error) {
+func CheckRangeStringRunes(pass *analysis.Pass) (any, error) {
 	for _, fn := range pass.ResultOf[buildir.Analyzer].(*buildir.IR).SrcFuncs {
 		cb := func(node ast.Node) bool {
 			rng, ok := node.(*ast.RangeStmt)
@@ -44,7 +44,7 @@ func CheckRangeStringRunes(pass *analysis.Pass) (interface{}, error) {
 			if !ok {
 				return true
 			}
-			TdstElem, ok := Tdst.Elem().(*types.Basic)
+			TdstElem, ok := types.Unalias(Tdst.Elem()).(*types.Basic)
 			if !ok || TdstElem.Kind() != types.Int32 {
 				return true
 			}
@@ -94,7 +94,7 @@ func CheckRangeStringRunes(pass *analysis.Pass) (interface{}, error) {
 // - variables named the blank identifier – a pattern used to confirm the types of variables
 // - untyped expressions on the rhs – the explicitness might aid readability
 func RedundantTypeInDeclarationChecker(verb string, flagHelpfulTypes bool) *analysis.Analyzer {
-	fn := func(pass *analysis.Pass) (interface{}, error) {
+	fn := func(pass *analysis.Pass) (any, error) {
 		eval := func(expr ast.Expr) (types.TypeAndValue, error) {
 			info := &types.Info{
 				Types: map[ast.Expr]types.TypeAndValue{},
@@ -154,7 +154,7 @@ func RedundantTypeInDeclarationChecker(verb string, flagHelpfulTypes bool) *anal
 					if err != nil {
 						panic(err)
 					}
-					if b, ok := tv.Type.(*types.Basic); ok && (b.Info()&types.IsUntyped) != 0 {
+					if b, ok := types.Unalias(tv.Type).(*types.Basic); ok && (b.Info()&types.IsUntyped) != 0 {
 						if Tlhs != types.Default(b) {
 							// The rhs is untyped and its default type differs from the explicit type on the lhs
 							continue specLoop

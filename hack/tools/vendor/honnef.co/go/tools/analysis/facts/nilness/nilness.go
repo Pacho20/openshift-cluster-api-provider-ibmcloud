@@ -35,7 +35,7 @@ var Analysis = &analysis.Analyzer{
 	Run:        run,
 	Requires:   []*analysis.Analyzer{buildir.Analyzer},
 	FactTypes:  []analysis.Fact{(*neverReturnsNilFact)(nil)},
-	ResultType: reflect.TypeOf((*Result)(nil)),
+	ResultType: reflect.TypeFor[*Result](),
 }
 
 // MayReturnNil reports whether the ret's return value of fn might be
@@ -57,7 +57,7 @@ func (r *Result) MayReturnNil(fn *types.Func, ret int) (yes bool, globalOnly boo
 	return v != neverNil, v == onlyGlobal
 }
 
-func run(pass *analysis.Pass) (interface{}, error) {
+func run(pass *analysis.Pass) (any, error) {
 	seen := map[*ir.Function]struct{}{}
 	out := &Result{
 		m: map[*types.Func][]neverNilness{},
@@ -221,6 +221,8 @@ func impl(pass *analysis.Pass, fn *ir.Function, seenFns map[*ir.Function]struct{
 			return nilly
 		case *ir.ChangeType:
 			return mightReturnNil(v.X)
+		case *ir.MultiConvert:
+			return mightReturnNil(v.X)
 		case *ir.Load:
 			if _, ok := v.X.(*ir.Global); ok {
 				return onlyGlobal
@@ -238,6 +240,8 @@ func impl(pass *analysis.Pass, fn *ir.Function, seenFns map[*ir.Function]struct{
 	out := make([]neverNilness, len(ret.Results))
 	export := false
 	for i, v := range ret.Results {
+		// OPT(dh): couldn't we check the result type's pointer-likeness early, and skip
+		// processing the return value altogether?
 		v := mightReturnNil(v)
 		out[i] = v
 		if v != nilly && typeutil.IsPointerLike(fn.Signature.Results().At(i).Type()) {
