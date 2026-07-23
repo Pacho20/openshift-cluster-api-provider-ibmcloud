@@ -1,0 +1,252 @@
+/*
+Copyright 2026 The Kubernetes Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package v1beta2
+
+import (
+	"reflect"
+	clusterv1 "sigs.k8s.io/cluster-api/api/core/v1beta2"
+	"testing"
+
+	"k8s.io/apimachinery/pkg/api/apitesting/fuzzer"
+	"k8s.io/apimachinery/pkg/runtime"
+	runtimeserializer "k8s.io/apimachinery/pkg/runtime/serializer"
+	"sigs.k8s.io/randfill"
+
+	utilconversion "sigs.k8s.io/cluster-api/util/conversion"
+
+	infrav1 "sigs.k8s.io/cluster-api-provider-ibmcloud/api/powervs/v1beta3"
+
+	. "github.com/onsi/gomega"
+)
+
+func TestFuzzyConversion(t *testing.T) {
+	g := NewWithT(t)
+	scheme := runtime.NewScheme()
+	g.Expect(AddToScheme(scheme)).To(Succeed())
+	g.Expect(infrav1.AddToScheme(scheme)).To(Succeed())
+
+	t.Run("for IBMPowerVSCluster", utilconversion.FuzzTestFunc(utilconversion.FuzzTestFuncInput{
+		Scheme:      scheme,
+		Hub:         &infrav1.IBMPowerVSCluster{},
+		Spoke:       &IBMPowerVSCluster{},
+		FuzzerFuncs: []fuzzer.FuzzerFuncs{IBMPowerVSClusterFuzzFuncs},
+	}))
+	t.Run("for IBMPowerVSClusterTemplate", utilconversion.FuzzTestFunc(utilconversion.FuzzTestFuncInput{
+		Scheme:      scheme,
+		Hub:         &infrav1.IBMPowerVSClusterTemplate{},
+		Spoke:       &IBMPowerVSClusterTemplate{},
+		FuzzerFuncs: []fuzzer.FuzzerFuncs{IBMPowerVSClusterTemplateFuzzFuncs},
+	}))
+	t.Run("for IBMPowerVSMachine", utilconversion.FuzzTestFunc(utilconversion.FuzzTestFuncInput{
+		Scheme:      scheme,
+		Hub:         &infrav1.IBMPowerVSMachine{},
+		Spoke:       &IBMPowerVSMachine{},
+		FuzzerFuncs: []fuzzer.FuzzerFuncs{IBMPowerVSMachineFuzzFuncs},
+	}))
+	t.Run("for IBMPowerVSMachineTemplate", utilconversion.FuzzTestFunc(utilconversion.FuzzTestFuncInput{
+		Scheme:      scheme,
+		Hub:         &infrav1.IBMPowerVSMachineTemplate{},
+		Spoke:       &IBMPowerVSMachineTemplate{},
+		FuzzerFuncs: []fuzzer.FuzzerFuncs{IBMPowerVSMachineTemplateFuzzFuncs},
+	}))
+	t.Run("for IBMPowerVSImage", utilconversion.FuzzTestFunc(utilconversion.FuzzTestFuncInput{
+		Scheme:      scheme,
+		Hub:         &infrav1.IBMPowerVSImage{},
+		Spoke:       &IBMPowerVSImage{},
+		FuzzerFuncs: []fuzzer.FuzzerFuncs{IBMPowerVSImageFuzzFuncs},
+	}))
+}
+
+func IBMPowerVSClusterFuzzFuncs(_ runtimeserializer.CodecFactory) []interface{} {
+	return []interface{}{
+		hubIBMPowerVSClusterStatus,
+		spokeIBMPowerVSClusterStatus,
+		spokeIBMPowerVSClusterSpec,
+	}
+}
+
+func hubIBMPowerVSClusterStatus(in *infrav1.IBMPowerVSClusterStatus, c randfill.Continue) {
+	c.FillNoCustom(in)
+	// Drop empty structs with only omit empty fields.
+	if in.Deprecated != nil {
+		if in.Deprecated.V1Beta2 == nil || reflect.DeepEqual(in.Deprecated.V1Beta2, &infrav1.IBMPowerVSClusterV1Beta2DeprecatedStatus{}) {
+			in.Deprecated = nil
+		}
+	}
+}
+
+func spokeIBMPowerVSClusterStatus(in *IBMPowerVSClusterStatus, c randfill.Continue) {
+	c.FillNoCustom(in)
+	// Drop empty structs with only omit empty fields.
+	if in.V1Beta2 != nil {
+		if reflect.DeepEqual(in.V1Beta2, &IBMPowerVSClusterV1Beta2Status{}) {
+			in.V1Beta2 = nil
+		}
+	}
+}
+
+func spokeIBMPowerVSClusterSpec(in *IBMPowerVSClusterSpec, c randfill.Continue) {
+	c.FillNoCustom(in)
+
+	// Ensure ServiceInstance and ServiceInstanceID are in sync for round-trip conversion
+	// This handles the deprecated field migration
+	if in.ServiceInstance != nil && in.ServiceInstance.ID != nil && *in.ServiceInstance.ID != "" {
+		// If ServiceInstance.ID is set, ensure ServiceInstanceID matches
+		in.ServiceInstanceID = *in.ServiceInstance.ID
+	} else if in.ServiceInstanceID != "" {
+		// If ServiceInstanceID is set, ensure ServiceInstance matches
+		if in.ServiceInstance == nil {
+			in.ServiceInstance = &IBMPowerVSResourceReference{}
+		}
+		id := in.ServiceInstanceID
+		in.ServiceInstance.ID = &id
+	}
+}
+
+func IBMPowerVSMachineFuzzFuncs(_ runtimeserializer.CodecFactory) []interface{} {
+	return []interface{}{
+		hubIBMPowerVSMachineStatus,
+		spokeIBMPowerVSMachineSpec,
+		spokeIBMPowerVSMachineStatus,
+	}
+}
+
+func hubIBMPowerVSMachineStatus(in *infrav1.IBMPowerVSMachineStatus, c randfill.Continue) {
+	c.FillNoCustom(in)
+	// Drop empty structs with only omit empty fields.
+	if in.Deprecated != nil {
+		if in.Deprecated.V1Beta2 == nil || reflect.DeepEqual(in.Deprecated.V1Beta2, &infrav1.IBMPowerVSMachineV1Beta2DeprecatedStatus{}) {
+			in.Deprecated = nil
+		}
+	}
+}
+
+func IBMPowerVSClusterTemplateFuzzFuncs(_ runtimeserializer.CodecFactory) []interface{} {
+	return []interface{}{
+		spokeIBMPowerVSClusterTemplateResource,
+	}
+}
+
+func spokeIBMPowerVSClusterTemplateResource(in *IBMPowerVSClusterTemplateResource, c randfill.Continue) {
+	c.FillNoCustom(in)
+
+	// Handle the nested spec
+	spokeIBMPowerVSClusterSpec(&in.Spec, c)
+}
+
+func spokeIBMPowerVSMachineSpec(in *IBMPowerVSMachineSpec, c randfill.Continue) {
+	c.FillNoCustom(in)
+
+	if in.ProviderID != nil && *in.ProviderID == "" {
+		in.ProviderID = nil
+	}
+
+	// Set ImageRef to nil if it has an empty name
+	if in.ImageRef != nil && in.ImageRef.Name == "" {
+		in.ImageRef = nil
+	}
+
+	// Ensure ServiceInstance and ServiceInstanceID are in sync for round-trip conversion
+	// This handles the deprecated field migration
+	if in.ServiceInstance != nil && in.ServiceInstance.ID != nil && *in.ServiceInstance.ID != "" {
+		// If ServiceInstance.ID is set, ensure ServiceInstanceID matches
+		in.ServiceInstanceID = *in.ServiceInstance.ID
+	} else if in.ServiceInstanceID != "" {
+		// If ServiceInstanceID is set, ensure ServiceInstance matches
+		if in.ServiceInstance == nil {
+			in.ServiceInstance = &IBMPowerVSResourceReference{}
+		}
+		id := in.ServiceInstanceID
+		in.ServiceInstance.ID = &id
+	}
+}
+
+func spokeIBMPowerVSMachineStatus(in *IBMPowerVSMachineStatus, c randfill.Continue) {
+	c.FillNoCustom(in)
+	// Drop empty structs with only omit empty fields.
+	if in.V1Beta2 != nil {
+		if reflect.DeepEqual(in.V1Beta2, &IBMPowerVSMachineV1Beta2Status{}) {
+			in.V1Beta2 = nil
+		}
+	}
+}
+
+func IBMPowerVSMachineTemplateFuzzFuncs(_ runtimeserializer.CodecFactory) []interface{} {
+	return []interface{}{
+		hubIBMPowerVSMachineTemplateResource,
+		spokeIBMPowerVSMachineTemplateResource,
+	}
+}
+
+func spokeIBMPowerVSMachineTemplateResource(in *IBMPowerVSMachineTemplateResource, c randfill.Continue) {
+	c.FillNoCustom(in)
+
+	// Handle the nested spec
+	spokeIBMPowerVSMachineSpec(&in.Spec, c)
+}
+
+func hubIBMPowerVSMachineTemplateResource(in *infrav1.IBMPowerVSMachineTemplateResource, c randfill.Continue) {
+	c.FillNoCustom(in)
+
+	in.ObjectMeta = clusterv1.ObjectMeta{} // Field does not exist in v1beta2.
+}
+
+func IBMPowerVSImageFuzzFuncs(_ runtimeserializer.CodecFactory) []interface{} {
+	return []interface{}{
+		hubIBMPowerVSImageStatus,
+		spokeIBMPowerVSImageStatus,
+		spokeIBMPowerVSImageSpec,
+	}
+}
+
+func spokeIBMPowerVSImageSpec(in *IBMPowerVSImageSpec, c randfill.Continue) {
+	c.FillNoCustom(in)
+
+	// Ensure ServiceInstance and ServiceInstanceID are in sync for round-trip conversion
+	// This handles the deprecated field migration
+	if in.ServiceInstance != nil && in.ServiceInstance.ID != nil && *in.ServiceInstance.ID != "" {
+		// If ServiceInstance.ID is set, ensure ServiceInstanceID matches
+		in.ServiceInstanceID = *in.ServiceInstance.ID
+	} else if in.ServiceInstanceID != "" {
+		// If ServiceInstanceID is set, ensure ServiceInstance matches
+		if in.ServiceInstance == nil {
+			in.ServiceInstance = &IBMPowerVSResourceReference{}
+		}
+		id := in.ServiceInstanceID
+		in.ServiceInstance.ID = &id
+	}
+}
+
+func hubIBMPowerVSImageStatus(in *infrav1.IBMPowerVSImageStatus, c randfill.Continue) {
+	c.FillNoCustom(in)
+	// Drop empty structs with only omit empty fields.
+	if in.Deprecated != nil {
+		if in.Deprecated.V1Beta2 == nil || reflect.DeepEqual(in.Deprecated.V1Beta2, &infrav1.IBMPowerVSImageV1Beta2DeprecatedStatus{}) {
+			in.Deprecated = nil
+		}
+	}
+}
+
+func spokeIBMPowerVSImageStatus(in *IBMPowerVSImageStatus, c randfill.Continue) {
+	c.FillNoCustom(in)
+	// Drop empty structs with only omit empty fields.
+	if in.V1Beta2 != nil {
+		if reflect.DeepEqual(in.V1Beta2, &IBMPowerVSImageV1Beta2Status{}) {
+			in.V1Beta2 = nil
+		}
+	}
+}

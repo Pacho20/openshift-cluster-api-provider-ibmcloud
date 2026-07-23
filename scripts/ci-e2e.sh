@@ -124,7 +124,7 @@ init_network_powervs(){
 prerequisites_powervs(){
     # Assigning PowerVS variables
     export IBMPOWERVS_SSHKEY_NAME=${IBMPOWERVS_SSHKEY_NAME:-"powercloud-bot-key"}
-    export IBMPOWERVS_IMAGE_NAME=${IBMPOWERVS_IMAGE_NAME:-"capibm-powervs-centos-streams9-1-33-1"}
+    export IBMPOWERVS_IMAGE_NAME=${IBMPOWERVS_IMAGE_NAME:-"capibm-powervs-centos-streams10-1-34-7"}
     export IBMPOWERVS_SERVICE_INSTANCE_ID=${BOSKOS_SERVICE_INSTANCE_ID:-"d53da3bf-1f4a-42fa-9735-acf16b1a05cd"}
     export IBMPOWERVS_NETWORK_NAME="capi-net-$(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | head --bytes 5)"
     export IBMPOWERVS_REGION=${BOSKOS_REGION:-"osa"}
@@ -138,7 +138,7 @@ prerequisites_vpc(){
     export IBMVPC_ZONE="${IBMVPC_REGION}-1"
     export IBMVPC_RESOURCEGROUP=${BOSKOS_RESOURCE_GROUP:-"fa5405a58226402f9a5818cb9b8a5a8a"}
     export IBMVPC_NAME=${BOSKOS_RESOURCE_NAME:-"capi-vpc-e2e"}
-    export IBMVPC_IMAGE_NAME=${IBMVPC_IMAGE_NAME:-"capibm-vpc-ubuntu-2404-kube-v1-33-0"}
+    export IBMVPC_IMAGE_NAME=${IBMVPC_IMAGE_NAME:-"capibm-vpc-ubuntu-2404-kube-v1-34-2"}
     export IBMVPC_PROFILE=${IBMVPC_PROFILE:-"bx2-4x16"}
     export IBMVPC_SSHKEY_NAME=${IBMVPC_SSHKEY_NAME:-"vpc-cloud-bot-key"}
 }
@@ -177,7 +177,6 @@ main(){
     # Set common variables
     export DOCKER_BUILDKIT=1
     export PROVIDER_ID_FORMAT=v2
-    export EXP_CLUSTER_RESOURCE_SET=true
     export IBMACCOUNT_ID=${IBMACCOUNT_ID:-"7cfbd5381a434af7a09289e795840d4e"}
     export BASE64_API_KEY=$(tr -d '\n' <<<"$IBMCLOUD_API_KEY" | base64)
     export CUSTOM_KIND_NODE_IMAGE=${CUSTOM_KIND_NODE_IMAGE:-}

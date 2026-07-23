@@ -38,6 +38,7 @@ TEMPLATES_DIR := $(REPO_ROOT)/templates
 
 GO_APIDIFF := $(TOOLS_BIN_DIR)/go-apidiff
 GOLANGCI_LINT := $(TOOLS_BIN_DIR)/golangci-lint
+GOLANGCI_LINT_KAL := $(TOOLS_BIN_DIR)/golangci-lint-kube-api-linter
 KUSTOMIZE := $(TOOLS_BIN_DIR)/kustomize
 GOJQ := $(TOOLS_BIN_DIR)/gojq
 CONVERSION_GEN := $(TOOLS_BIN_DIR)/conversion-gen
@@ -84,11 +85,11 @@ RELEASE_NOTES_DIR := CHANGELOG
 OUTPUT_TYPE ?= type=registry
 
 # Go
-GO_VERSION ?=1.24.13
+GO_VERSION ?=1.25.10
 GO_CONTAINER_IMAGE ?= golang:$(GO_VERSION)
 
 # Trivy
-TRIVY_VER := 0.61.1
+TRIVY_VER := 0.69.3
 
 # kind
 CAPI_KIND_CLUSTER_NAME ?= capi-test
@@ -105,7 +106,7 @@ PULL_POLICY ?= Always
 # Set build time variables including version details
 LDFLAGS := $(shell ./hack/version.sh)
 
-KUBEBUILDER_ENVTEST_KUBERNETES_VERSION ?= 1.34.0
+KUBEBUILDER_ENVTEST_KUBERNETES_VERSION ?= 1.35.0
 
 # main controller
 CORE_IMAGE_NAME ?= cluster-api-ibmcloud-controller
@@ -141,22 +142,22 @@ capibmadm: ## Build the capibmadm binary into the ./bin folder
 
 # Build manager binary
 manager: generate fmt vet ## Build the manager binary into the ./bin folder
-	go build -ldflags "${LDFLAGS} -extldflags '-static'" -o $(BIN_DIR)/manager main.go
+	go build -ldflags "${LDFLAGS} -extldflags '-static'" -o $(BIN_DIR)/manager cmd/main.go
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 run: generate fmt vet
-	go run ./main.go
+	go run ./cmd/main.go
 
 # Install CRDs into a cluster
-install: generate-manifests $(KUSTOMIZE)
+install: manifests $(KUSTOMIZE)
 	$(KUSTOMIZE) build config/crd | kubectl apply -f -
 
 # Uninstall CRDs from a cluster
-uninstall: generate-manifests $(KUSTOMIZE)
+uninstall: manifests $(KUSTOMIZE)
 	$(KUSTOMIZE) build config/crd | kubectl delete -f -
 
 # Deploy controller in the configured Kubernetes cluster in ~/.kube/config
-deploy: generate-manifests $(KUSTOMIZE)
+deploy: manifests $(KUSTOMIZE)
 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	$(KUSTOMIZE) build config/default | kubectl apply -f -
 
@@ -179,8 +180,8 @@ help:  # Display this help
 
 # Generate code
 .PHONY: generate
-generate: ## Run all generate-go generate-modules generate-manifests generate-go-deepcopy generate-go-conversions generate-templates generate-e2e-templates
-	$(MAKE) generate-go generate-modules generate-manifests generate-go-deepcopy generate-go-conversions generate-templates generate-e2e-templates
+generate: ## Run all generate-go generate-modules manifests generate-go-deepcopy generate-go-conversions generate-templates generate-e2e-templates
+	$(MAKE) generate-go generate-modules manifests generate-go-deepcopy generate-go-conversions generate-templates generate-e2e-templates
 
 generate-go-deepcopy: $(CONTROLLER_GEN) ## Generate deepcopy go code
 	$(CONTROLLER_GEN) object:headerFile="hack/boilerplate.go.txt" paths="./..."
@@ -189,18 +190,19 @@ generate-go-deepcopy: $(CONTROLLER_GEN) ## Generate deepcopy go code
 generate-go: $(MOCKGEN) ## Generate the Go mock code
 	go generate ./...
 
-.PHONY: generate-manifests
-generate-manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
+.PHONY: manifests
+manifests: $(CONTROLLER_GEN) ## Generate manifests e.g. CRD, RBAC etc.
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role webhook paths="./..." output:crd:artifacts:config=config/crd/bases
 	$(CONTROLLER_GEN) $(CRD_OPTIONS) rbac:roleName=manager-role paths="./..." output:crd:artifacts:config=config/crd/bases
 
 .PHONY: generate-go-conversions
 generate-go-conversions: $(CONVERSION_GEN) ## Generate conversions go code
-	$(MAKE) clean-generated-conversions SRC_DIRS="./api/v1beta1"
+	$(MAKE) clean-generated-conversions SRC_DIRS="./api/powervs/v1beta2,./api/vpc/v1beta1"
 	$(CONVERSION_GEN) \
 		--output-file=zz_generated.conversion.go \
 		--go-header-file=./hack/boilerplate/boilerplate.generatego.txt \
-		./api/v1beta1
+		./api/powervs/v1beta2 \
+		./api/vpc/v1beta1
 
 .PHONY: generate-templates
 generate-templates: $(KUSTOMIZE) ## Generate cluster templates
@@ -234,6 +236,10 @@ endif
 ## --------------------------------------
 
 ##@ test:
+
+# Workaround for Go 1.25.x missing covdata tool (https://github.com/golang/go/issues/75031)
+GOVERSION := $(shell go env GOVERSION)
+export GOTOOLCHAIN := $(GOVERSION)+auto
 
 .PHONY: setup-envtest
 setup-envtest: $(SETUP_ENVTEST) # Build setup-envtest from tools folder
@@ -351,12 +357,12 @@ release-notes: $(RELEASE_NOTES) $(RELEASE_NOTES_DIR) ## Generate/update release 
 	@echo "generating release notes from $(PREVIOUS_TAG) to $(RELEASE_TAG) with start sha $(START_SHA) and end sha $(END_SHA)"
 	@if [ -n "${PRE_RELEASE}" ]; then \
 		echo ":rotating_light: This is a RELEASE CANDIDATE. Use it only for testing purposes. If you find any bugs, file an [issue](https://github.com/kubernetes-sigs/cluster-api-provider-ibmcloud/issues/new)." > $(RELEASE_NOTES_DIR)/release-notes-$(RELEASE_TAG).md; \
-		$(RELEASE_NOTES) --org $(GIT_ORG_NAME) --repo $(GIT_REPO_NAME) --branch $(RELEASE_BRANCH) --required-author "" --start-sha $(START_SHA) --end-sha $(END_SHA) --markdown-links true --dependencies false --output $(RELEASE_NOTES_DIR)/$(RELEASE_TAG).md; \
+		$(RELEASE_NOTES) --org $(GIT_ORG_NAME) --repo $(GIT_REPO_NAME) --branch $(RELEASE_BRANCH) --repo-path $(REPO_ROOT) --start-sha $(START_SHA) --end-sha $(END_SHA) --markdown-links true --dependencies false --output $(RELEASE_NOTES_DIR)/$(RELEASE_TAG).md; \
 		(cat $(RELEASE_NOTES_DIR)/release-notes-$(RELEASE_TAG).md; echo ""; cat $(RELEASE_NOTES_DIR)/$(RELEASE_TAG).md) > $(RELEASE_NOTES_DIR)/tmp-release-notes.md; \
 		mv $(RELEASE_NOTES_DIR)/tmp-release-notes.md $(RELEASE_NOTES_DIR)/$(RELEASE_TAG).md; \
 		rm -f $(RELEASE_NOTES_DIR)/release-notes-$(RELEASE_TAG).md; \
 	else \
-		$(RELEASE_NOTES) --org $(GIT_ORG_NAME) --repo $(GIT_REPO_NAME) --branch $(RELEASE_BRANCH) --required-author "" --start-sha $(START_SHA) --end-sha $(END_SHA) --markdown-links true --output $(RELEASE_NOTES_DIR)/$(RELEASE_TAG).md; \
+		$(RELEASE_NOTES) --org $(GIT_ORG_NAME) --repo $(GIT_REPO_NAME) --branch $(RELEASE_BRANCH) --repo-path $(REPO_ROOT) --start-sha $(START_SHA) --end-sha $(END_SHA) --markdown-links true --output $(RELEASE_NOTES_DIR)/$(RELEASE_TAG).md; \
 	fi
 
 .PHONY: staging-manifests
@@ -501,6 +507,14 @@ lint: $(GOLANGCI_LINT) ## Lint codebase
 lint-fix: $(GOLANGCI_LINT) ## Lint the codebase and run auto-fixers if supported by the linter
 	GOLANGCI_LINT_EXTRA_ARGS=--fix $(MAKE) lint
 
+.PHONY: lint-api
+lint-api: $(GOLANGCI_LINT_KAL)
+	$(GOLANGCI_LINT_KAL) run -v --config ./.golangci-kal.yml $(GOLANGCI_LINT_EXTRA_ARGS)
+
+.PHONY: lint-api-fix
+lint-api-fix: $(GOLANGCI_LINT_KAL)
+	GOLANGCI_LINT_EXTRA_ARGS=--fix $(MAKE) lint-api
+
 APIDIFF_OLD_COMMIT ?= $(shell git rev-parse origin/main)
 
 .PHONY: apidiff
@@ -557,7 +571,7 @@ verify-container-images: ## Verify container images
 .PHONY: verify-govulncheck
 verify-govulncheck: $(GOVULNCHECK) ## Verify code for vulnerabilities
 	$(GOVULNCHECK) ./... && R1=$$? || R1=$$?; \
-	$(GOVULNCHECK) -C "$(TOOLS_DIR)" ./... && R2=$$? || R2=$$?; \
+	cd $(TOOLS_DIR) && echo 'package tools' > temp_govulncheck.go && $(REPO_ROOT)/$(GOVULNCHECK) ./... && R2=$$? || R2=$$? && rm -f temp_govulncheck.go; \
 	if [ "$$R1" -ne "0" ] || [ "$$R2" -ne "0" ]; then \
 		exit 1; \
 	fi

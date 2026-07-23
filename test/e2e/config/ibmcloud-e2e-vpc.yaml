@@ -9,31 +9,31 @@ providers:
   - name: cluster-api
     type: CoreProvider
     versions:
-    - name: v1.12.0
-      value: https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.12.0/core-components.yaml
+    - name: v1.13.1
+      value: https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.13.1/core-components.yaml
       type: url
       files:
       - sourcePath: "${PWD}/test/e2e/data/shared/metadata.yaml"
   - name: kubeadm
     type: BootstrapProvider
     versions:
-    - name: v1.12.0
-      value: https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.12.0/bootstrap-components.yaml
+    - name: v1.13.1
+      value: https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.13.1/bootstrap-components.yaml
       type: url
       files:
       - sourcePath: "${PWD}/test/e2e/data/shared/metadata.yaml"
   - name: kubeadm
     type: ControlPlaneProvider
     versions:
-    - name: v1.12.0
-      value: https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.12.0/control-plane-components.yaml
+    - name: v1.13.1
+      value: https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.13.1/control-plane-components.yaml
       type: url
       files:
       - sourcePath: "${PWD}/test/e2e/data/shared/metadata.yaml"
   - name: ibmcloud
     type: InfrastructureProvider
     versions:
-    - name: v0.13.0
+    - name: v0.14.0
       value: "${PWD}/config/default"
       files:
       - sourcePath: "${PWD}/metadata.yaml"
@@ -42,7 +42,7 @@ providers:
         targetName: "cluster-template-vpc.yaml"
 
 variables:
-  KUBERNETES_VERSION: "${KUBERNETES_VERSION:-v1.33.0}"
+  KUBERNETES_VERSION: "${KUBERNETES_VERSION:-v1.34.2}"
   # Below variable should be set based on the targeted environment
   SERVICE_ENDPOINT: "${SERVICE_ENDPOINT:-}"
   # Cluster Addons
