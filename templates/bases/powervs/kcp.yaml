@@ -171,14 +171,15 @@ spec:
         path: /etc/pre-kubeadm-commands/50-kube-vip-prepare.sh
         permissions: "0700"
 ---
-apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta3
 kind: IBMPowerVSMachineTemplate
 metadata:
   name: "${CLUSTER_NAME}-control-plane"
 spec:
   template:
     spec:
-      serviceInstanceID: "${IBMPOWERVS_SERVICE_INSTANCE_ID}"
+      serviceInstance:
+        id: "${IBMPOWERVS_SERVICE_INSTANCE_ID}"
       sshKey: "${IBMPOWERVS_SSHKEY_NAME}"
       image:
         name: "${IBMPOWERVS_IMAGE_NAME}"

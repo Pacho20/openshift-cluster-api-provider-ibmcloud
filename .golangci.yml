@@ -1,6 +1,6 @@
 version: "2"
 run:
-  go: "1.24"
+  go: "1.25"
   build-tags:
     - tools
     - e2e
@@ -164,6 +164,10 @@ linters:
         text: exported (method|function|type|const) (.+) should have comment or be unexported
       - linters:
           - revive
+        path: \.go$
+        text: 'var-naming: avoid package names that conflict with Go standard library package names'
+      - linters:
+          - revive
         path: .*(api|types)\/.*\/.*conversion.*\.go$
         text: 'var-naming: don''t use underscores in Go names;'
       - linters:
@@ -196,21 +200,30 @@ linters:
           - gocritic
         path: _test\.go
         text: 'deferInLoop: Possible resource leak, ''defer'' is called in the ''for'' loop'
+      # Exclude goconst for all test files - test data doesn't need constants
       - linters:
-          - staticcheck
-        text: 'SA1019: .*(i|s|m)\.IBMPowerVSCluster.Spec.ServiceInstanceID is deprecated: use ServiceInstance instead'
-      - linters:
-          - staticcheck
-        text: 'SA1019: .*(i|s|m)\.IBMPowerVSImage.Spec.ServiceInstanceID is deprecated: use ServiceInstance instead'
-      - linters:
-          - staticcheck
-        text: 'SA1019: .*(i|s|m|params)\.IBMPowerVSMachine.Spec.ServiceInstanceID is deprecated: use ServiceInstance instead'
-      - linters:
-          - staticcheck
-        text: 'SA1019: spec.ServiceInstanceID is deprecated: use ServiceInstance instead'
+          - goconst
+        path: _test\.go
       - linters:
           - staticcheck
         text: 'SA1019: endpoints.(FetchRCEndpoint|FetchPVSEndpoint) is deprecated: Use FetchEndpoints instead.'
+      # v1Beta2 deprecated fields
+      - linters:
+          - staticcheck
+        text: 'SA1019: .*\.Deprecated\.V1Beta2.* is deprecated'
+      # Specific exclude rules for deprecated packages that are still part of the codebase. These
+      # should be removed as the referenced deprecated packages are removed from the project.
+      - linters:
+          - staticcheck
+        text: 'SA1019: .* is deprecated: This package is deprecated and is going to be removed when support for v1beta2 will be dropped.'
+      # v1beta1 condition types are deprecated but still needed for backward compatibility
+      - linters:
+          - staticcheck
+        text: 'SA1019: clusterv1\.(Condition|Conditions|ConditionType|ConditionSeverity) is deprecated: This type is deprecated and is going to be removed when support for v1beta1 will be dropped\.'
+      # GetEventRecorderFor is deprecated but GetEventRecorder returns incompatible interface type
+      - linters:
+          - staticcheck
+        text: 'SA1019: mgr\.GetEventRecorderFor is deprecated: this uses the old events API and will be removed in a future release\. Please use GetEventRecorder instead\.'
     paths:
       - zz_generated.*\.go$
       - third_party$

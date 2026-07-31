@@ -22,14 +22,15 @@ spec:
     kind: KubeadmControlPlane
     name: "${CLUSTER_NAME}-control-plane"
 ---
-apiVersion: infrastructure.cluster.x-k8s.io/v1beta2
+apiVersion: infrastructure.cluster.x-k8s.io/v1beta3
 kind: IBMPowerVSCluster
 metadata:
   labels:
     cluster.x-k8s.io/cluster-name: "${CLUSTER_NAME}"
   name: "${CLUSTER_NAME}"
 spec:
-  serviceInstanceID: "${IBMPOWERVS_SERVICE_INSTANCE_ID}"
+  serviceInstance:
+    id: "${IBMPOWERVS_SERVICE_INSTANCE_ID}"
   network:
     name: "${IBMPOWERVS_NETWORK_NAME}"
   controlPlaneEndpoint:
